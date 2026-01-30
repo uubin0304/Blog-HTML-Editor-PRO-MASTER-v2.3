@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>블로그 HTML 에디터 PRO MASTER v2.3 (Final)</title>
+  <title>블로그 HTML 에디터 PRO MASTER v3.1 (Fixed)</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" />
@@ -24,7 +24,7 @@
     .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
     .header h1 { font-size: 1.1rem; margin: 0; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     
-    .toolbar { display: flex; flex-wrap: wrap; gap: 5px; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
     .separator { width: 1px; background: var(--border); margin: 0 5px; height: 24px; }
     
     .btn { padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
@@ -77,7 +77,7 @@
 <body class="light-mode">
   <header class="header">
     <div class="header-top">
-      <h1>🎨 BLOG EDITOR <span style="font-size:0.7em; opacity:0.7;">PRO MASTER v2.3</span></h1>
+      <h1>🎨 BLOG EDITOR <span style="font-size:0.7em; opacity:0.7;">PRO v3.1</span></h1>
       <div style="display:flex; gap:8px;">
         <button class="btn btn-secondary" onclick="toggleDarkMode()">🌓 모드전환</button>
         <button class="btn btn-secondary" style="background:#4f46e5; border:none; color:white;" onclick="openModal('help')">❓ 도움말</button>
@@ -86,6 +86,10 @@
       </div>
     </div>
     <div class="toolbar">
+      <button class="btn btn-secondary" title="실행취소 (Ctrl+Z)" onclick="editor.undo()">⟲</button>
+      <button class="btn btn-secondary" title="다시실행 (Ctrl+Y)" onclick="editor.redo()">⟳</button>
+      <div class="separator"></div>
+      
       <button class="btn btn-secondary" onclick="openModal('themes')">🌈 테마선택</button>
       <button class="btn btn-success" onclick="applyThemeInline()">🎨 코드에 적용</button>
       <div class="separator"></div>
@@ -188,6 +192,34 @@
       <div class="field"><label>배경 색상</label><input type="color" id="cta-bg" value="#6366f1" style="height:40px;"></div>
       <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="insCTA()">버튼 만들기</button>
       <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('cta')">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-seo">
+    <div class="modal-card">
+      <h2>🔍 검색엔진 최적화 (SEO)</h2>
+      <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">구글이 이 글을 더 잘 이해하도록 구조화 데이터(JSON-LD)를 만듭니다.</p>
+      
+      <div class="field">
+        <label>글 제목 (Headline)</label>
+        <input type="text" id="seo-headline" placeholder="블로그 포스팅 제목을 입력하세요">
+      </div>
+      
+      <div class="field">
+        <label>글 요약 (Description)</label>
+        <textarea id="seo-desc" style="height:80px;" placeholder="이 글의 핵심 내용을 1~2문장으로 요약하세요."></textarea>
+      </div>
+
+      <div class="field">
+        <label>스키마 타입</label>
+        <select id="seo-type">
+          <option value="Article">일반 포스팅 (Article)</option>
+          <option value="FAQPage">질문/답변 형식 (FAQ)</option>
+        </select>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%" onclick="insJSONLD()">데이터 생성 및 삽입</button>
+      <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('seo')">닫기</button>
     </div>
   </div>
 
@@ -402,6 +434,30 @@
       } else {
         altEl.innerText = 'Alt 완벽함'; altEl.className = 'seo-stat seo-good';
       }
+    }
+
+    // ✅ JSON-LD 삽입 함수 (복구됨)
+    function insJSONLD() {
+      const headline = document.getElementById('seo-headline').value || '제목';
+      const desc = document.getElementById('seo-desc').value || '설명';
+      const type = document.getElementById('seo-type').value;
+
+      const schema = {
+        "@context": "https://schema.org",
+        "@type": type,
+        "headline": headline,
+        "description": desc,
+        "author": {
+          "@type": "Person",
+          "name": "Blogger"
+        },
+        "datePublished": new Date().toISOString().split('T')[0]
+      };
+
+      const script = `<script type="application/ld+json">${JSON.stringify(schema, null, 2)}<\/script>`;
+      insertAtCursor(script);
+      closeModal('seo');
+      alert('SEO 구조화 데이터가 삽입되었습니다.');
     }
 
     // 삽입 헬퍼
