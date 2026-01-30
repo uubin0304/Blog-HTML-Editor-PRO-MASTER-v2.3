@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>블로그 HTML 에디터 PRO MASTER v3.1</title>
+  <title>블로그 HTML 에디터 PRO MASTER v3.2</title>
   
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" />
@@ -42,7 +42,7 @@
     /* 에디터 */
     .CodeMirror { flex: 1; height: auto !important; font-size: 14px; font-family: 'Consolas', monospace; }
     
-    /* 미리보기 (다크모드여도 항상 흰색 유지) */
+    /* 미리보기 */
     #preview-pane { background: #e2e8f0 !important; }
     .preview-content { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; }
     .preview-viewport { 
@@ -61,15 +61,20 @@
     /* 모달 공통 */
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
     .modal.active { display: flex; }
-    .modal-card { background: var(--bg-dark); border: 1px solid var(--border); padding: 25px; border-radius: 15px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; color: var(--text-primary); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    .modal-card { background: var(--bg-dark); border: 1px solid var(--border); padding: 25px; border-radius: 15px; width: 90%; max-width: 650px; max-height: 85vh; overflow-y: auto; color: var(--text-primary); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
     .modal h2 { margin-top: 0; color: var(--primary); }
     .field { margin-bottom: 15px; }
     .field label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: #999; }
     .field input, .field select, .field textarea { width: 100%; padding: 8px; background: var(--bg-darker); border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+    
+    /* 컬러 도트 및 그리드 */
     .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
     .theme-card { background: var(--bg-darker); border: 1px solid var(--border); padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
     .theme-card:hover, .theme-card.active { border-color: var(--primary); background: var(--bg-light); }
     .color-dot { width: 100%; height: 10px; border-radius: 5px; margin-bottom: 5px; }
+    .color-picker-dots { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 8px; }
+    .cp-dot { width: 30px; height: 30px; border-radius: 6px; cursor: pointer; border: 1px solid #555; }
+    .cp-dot:hover { transform: scale(1.1); }
 
     .help-step { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
   </style>
@@ -77,7 +82,7 @@
 <body class="light-mode">
   <header class="header">
     <div class="header-top">
-      <h1>🎨 BLOG EDITOR <span style="font-size:0.7em; opacity:0.7;">PRO v3.1</span></h1>
+      <h1>🎨 BLOG EDITOR <span style="font-size:0.7em; opacity:0.7;">PRO v3.2</span></h1>
       <div style="display:flex; gap:8px;">
         <button class="btn btn-secondary" onclick="toggleDarkMode()">🌓 모드전환</button>
         <button class="btn btn-secondary" style="background:#4f46e5; border:none; color:white;" onclick="openModal('help')">❓ 도움말</button>
@@ -144,20 +149,17 @@
       <h2>🚀 3초 완성 가이드</h2>
       <div class="help-step">
         <strong>Step 1. 글쓰기</strong><br>
-        왼쪽 화면에 글을 쓰거나 붙여넣으세요. (H2 제목을 쓰면 목차가 자동 생성됩니다)
+        왼쪽 화면에 글을 쓰거나 붙여넣으세요.
       </div>
       <div class="help-step">
-        <strong>Step 2. 꾸미기</strong><br>
-        [🌈 테마선택]에서 색상을 고르고, 반드시 <b>[🎨 코드에 적용]</b> 버튼을 누르세요.<br>
-        * 이 버튼을 눌러야 블로그에 붙여넣었을 때 디자인이 유지됩니다.
+        <strong>Step 2. 꾸미기 (필수)</strong><br>
+        [🌈 테마선택] 후 <b>[🎨 코드에 적용]</b> 버튼을 꼭 눌러야 블로그에서도 예쁘게 나옵니다!
       </div>
       <div class="help-step">
         <strong>Step 3. 복사 & 붙여넣기</strong><br>
-        [📋 전체복사] 후 블로그 글쓰기의 'HTML 모드'에 붙여넣으세요.
+        [📋 전체복사] 후 블로그 'HTML 모드'에 붙여넣으세요.
       </div>
-      <hr style="border-color:var(--border); margin:15px 0;">
-      <p><strong>💡 팁:</strong> 외부에서 글을 긁어왔을 땐 [🧹 코드청소]를 누르면 깨끗해집니다.</p>
-      <button class="btn btn-primary" style="width:100%" onclick="closeModal('help')">알겠습니다!</button>
+      <button class="btn btn-primary" style="width:100%" onclick="closeModal('help')">확인</button>
     </div>
   </div>
 
@@ -185,12 +187,56 @@
   </div>
 
   <div class="modal" id="modal-cta">
-    <div class="modal-card">
-      <h2>✨ 클릭 유도 버튼</h2>
-      <div class="field"><label>버튼 문구</label><input type="text" id="cta-txt" value="자세히 보기 👉"></div>
-      <div class="field"><label>이동할 주소</label><input type="text" id="cta-url" placeholder="https://..."></div>
-      <div class="field"><label>배경 색상</label><input type="color" id="cta-bg" value="#6366f1" style="height:40px;"></div>
-      <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="insCTA()">버튼 만들기</button>
+    <div class="modal-card" style="max-width:650px;">
+      <h2>✨ 반짝이는 버튼 생성기 (Full)</h2>
+      
+      <div class="field"><label>버튼 텍스트</label><input type="text" id="cta-txt" value="버튼 클릭하기 👉"></div>
+      <div class="field"><label>링크 URL</label><input type="text" id="cta-url" placeholder="https://example.com"></div>
+      
+      <div class="field">
+        <label>배경 색상</label>
+        <input type="text" id="cta-bg-color" value="#00FFEF">
+        <div class="color-picker-dots" id="bg-picker">
+          <div class="cp-dot" style="background:#FF00FF" onclick="setCTAColor('bg', '#FF00FF')"></div>
+          <div class="cp-dot" style="background:#00FFEF" onclick="setCTAColor('bg', '#00FFEF')"></div>
+          <div class="cp-dot" style="background:#FFF700" onclick="setCTAColor('bg', '#FFF700')"></div>
+          <div class="cp-dot" style="background:#39FF14" onclick="setCTAColor('bg', '#39FF14')"></div>
+          <div class="cp-dot" style="background:#FF3CAC" onclick="setCTAColor('bg', '#FF3CAC')"></div>
+          <div class="cp-dot" style="background:#FF7F50" onclick="setCTAColor('bg', '#FF7F50')"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>텍스트 색상</label>
+        <input type="text" id="cta-text-color" value="#000000">
+        <div class="color-picker-dots" style="grid-template-columns: repeat(4, 1fr);">
+          <div class="cp-dot" style="background:#000000" onclick="setCTAColor('txt', '#000000')"></div>
+          <div class="cp-dot" style="background:#FFFFFF; border:1px solid #ccc;" onclick="setCTAColor('txt', '#FFFFFF')"></div>
+          <div class="cp-dot" style="background:#333333" onclick="setCTAColor('txt', '#333333')"></div>
+          <div class="cp-dot" style="background:#666666" onclick="setCTAColor('txt', '#666666')"></div>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>폰트 크기 (<span id="cta-font-val">20px</span>)</label>
+        <input type="range" id="cta-font-size" min="14" max="30" value="20" oninput="document.getElementById('cta-font-val').innerText=this.value+'px'; updateCTAPreview();">
+      </div>
+
+      <div class="field">
+        <label>버튼 스타일</label>
+        <div style="display:flex; gap:15px; flex-wrap:wrap;">
+          <label><input type="checkbox" id="cta-shiny" checked onchange="updateCTAPreview()"> ✨ 반짝임</label>
+          <label><input type="checkbox" id="cta-float" checked onchange="updateCTAPreview()"> 🎈 둥둥뜸</label>
+          <label><input type="checkbox" id="cta-shadow" checked onchange="updateCTAPreview()"> 🌟 그림자</label>
+        </div>
+      </div>
+
+      <div style="background:#eee; padding:20px; border-radius:10px; text-align:center; margin:15px 0;">
+        <label style="display:block; margin-bottom:10px; font-size:0.8rem;">미리보기</label>
+        <div id="cta-preview"></div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%;" onclick="insCTA()">삽입하기</button>
       <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('cta')">취소</button>
     </div>
   </div>
@@ -199,25 +245,9 @@
     <div class="modal-card">
       <h2>🔍 검색엔진 최적화 (SEO)</h2>
       <p style="font-size:0.8rem; color:#aaa; margin-bottom:15px;">구글이 이 글을 더 잘 이해하도록 구조화 데이터(JSON-LD)를 만듭니다.</p>
-      
-      <div class="field">
-        <label>글 제목 (Headline)</label>
-        <input type="text" id="seo-headline" placeholder="블로그 포스팅 제목을 입력하세요">
-      </div>
-      
-      <div class="field">
-        <label>글 요약 (Description)</label>
-        <textarea id="seo-desc" style="height:80px;" placeholder="이 글의 핵심 내용을 1~2문장으로 요약하세요."></textarea>
-      </div>
-
-      <div class="field">
-        <label>스키마 타입</label>
-        <select id="seo-type">
-          <option value="Article">일반 포스팅 (Article)</option>
-          <option value="FAQPage">질문/답변 형식 (FAQ)</option>
-        </select>
-      </div>
-
+      <div class="field"><label>글 제목 (Headline)</label><input type="text" id="seo-headline"></div>
+      <div class="field"><label>글 요약 (Description)</label><textarea id="seo-desc" style="height:80px;"></textarea></div>
+      <div class="field"><label>스키마 타입</label><select id="seo-type"><option value="Article">Article</option><option value="FAQPage">FAQ</option></select></div>
       <button class="btn btn-primary" style="width:100%" onclick="insJSONLD()">데이터 생성 및 삽입</button>
       <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('seo')">닫기</button>
     </div>
@@ -245,24 +275,20 @@
   </div>
 
   <div class="modal" id="modal-converter">
-    <div class="modal-card" style="max-width: 700px;">
+    <div class="modal-card" style="max-width: 800px; width: 95%;">
       <h2>🔄 HTML ↔ Markdown 변환기</h2>
-      
       <div class="field">
-        <label>📝 입력 (여기에 붙여넣으세요)</label>
-        <textarea id="conv-input" style="height:150px; font-family: monospace; font-size: 13px; line-height: 1.5;" placeholder="HTML 또는 마크다운 코드를 입력하세요..."></textarea>
+        <label>📝 입력 (HTML 또는 마크다운)</label>
+        <textarea id="conv-input" style="height:180px; font-family: monospace; font-size: 13px; line-height: 1.5;"></textarea>
       </div>
-
       <div style="display:flex; gap:10px; margin-bottom: 15px;">
-        <button class="btn btn-primary" style="flex:1; padding:10px;" onclick="toMD()">⬇️ HTML을 마크다운으로</button>
-        <button class="btn btn-success" style="flex:1; padding:10px;" onclick="toHTML()">⬇️ 마크다운을 HTML로</button>
+        <button class="btn btn-primary" style="flex:1; padding:12px;" onclick="toMD()">⬇️ HTML → Markdown</button>
+        <button class="btn btn-success" style="flex:1; padding:12px;" onclick="toHTML()">⬇️ Markdown → HTML</button>
       </div>
-
       <div class="field">
         <label>✨ 변환 결과</label>
-        <textarea id="conv-output" style="height:150px; font-family: monospace; font-size: 13px; line-height: 1.5; background: #000; color: #4ade80; border-color: #333;" readonly placeholder="변환된 결과가 여기에 나타납니다."></textarea>
+        <textarea id="conv-output" style="height:180px; font-family: monospace; font-size: 13px; line-height: 1.5; background: #000; color: #4ade80; border-color: #333;" readonly></textarea>
       </div>
-
       <button class="btn btn-secondary" style="width:100%; padding:10px;" onclick="closeModal('converter')">닫기</button>
     </div>
   </div>
@@ -276,7 +302,7 @@
     let editor;
     let state = { t: 0, dark: false };
     
-    // 테마 데이터 (20종 중 핵심 10종)
+    // 테마 데이터
     const THEMES = [
       { n: '에메랄드', h2: '#2ecc71', h3: '#27ae60', m: '#E8F5E9', c: '#2ecc71' },
       { n: '오션블루', h2: '#3498db', h3: '#2980b9', m: '#e3f2fd', c: '#3498db' },
@@ -296,7 +322,6 @@
         mode: 'htmlmixed', theme: 'monokai', lineNumbers: true, lineWrapping: true
       });
 
-      // 자동 저장 불러오기
       const saved = localStorage.getItem('blog_editor_content');
       if(saved) editor.setValue(saved);
       else editor.setValue(getDefaultContent());
@@ -307,18 +332,22 @@
         localStorage.setItem('blog_editor_content', editor.getValue());
       });
 
+      // 버튼 생성기 미리보기 초기화
+      document.getElementById('cta-txt').addEventListener('input', updateCTAPreview);
+      document.getElementById('cta-bg-color').addEventListener('input', updateCTAPreview);
+      document.getElementById('cta-text-color').addEventListener('input', updateCTAPreview);
+      updateCTAPreview();
+
       renderThemes();
       render();
       updateSEO();
     };
 
+    // ✅ 기본 콘텐츠 수정 (META DESCRIPTION 제목 제거됨)
     function getDefaultContent() {
       return `<div style="max-width: 800px; margin: 0 auto; line-height: 1.8; color: #333;">
   <div class="meta-desc-box">
-    <div class="meta-desc-title">META DESCRIPTION</div>
-    <p class="meta-desc-text">
-      이 영역은 검색 결과에 노출되는 메타디스크립션 예시입니다. 핵심 키워드를 자연스럽게 포함해 2~3문장으로 요약해 주세요.
-    </p>
+    이 영역은 검색 결과에 노출되는 메타디스크립션 예시입니다. 핵심 키워드를 자연스럽게 포함해 2~3문장으로 요약해 주세요.
   </div>
 
   <h2>에디터 사용법</h2>
@@ -326,28 +355,15 @@
 
   <h3>주요 기능</h3>
   <ul>
-    <li>🌈 20가지 테마 & 인라인 적용</li>
-    <li>🖼️ 이미지 삽입 (링크 + 크기 조절)</li>
-    <li>✨ 반짝이는 버튼 생성기</li>
-    <li>📑 자동 목차 생성</li>
-    <li>📝 메타디스크립션 박스</li>
-  </ul>
-
-  <h3>🚀 v3.1 업데이트 기능</h3>
-  <ul>
-    <li>🔍 <b>SEO 스키마</b>: JSON-LD 구조화 데이터 자동 생성 (날짜 제외됨)</li>
-    <li>🧹 <b>코드 클리너</b>: 지저분한 외부 스타일 원클릭 삭제</li>
-    <li>📱 <b>앱 다운로드 박스</b>: 구글/애플 스토어 배너 생성</li>
-    <li>🔄 <b>마크다운 변환기</b>: HTML ↔ MD 양방향 완벽 변환</li>
-    <li>⟲ <b>실행 취소/다시 실행</b>: 툴바 버튼 추가됨</li>
+    <li>🌈 20가지 테마 (원클릭 적용)</li>
+    <li>🖼️ 이미지, 버튼, 앱 다운로드 박스</li>
+    <li>📑 자동 목차 및 SEO 도구</li>
+    <li>🔄 HTML ↔ 마크다운 변환</li>
   </ul>
 
   <div style="text-align:center; margin:34px 0;">
-    <a href="https://www.coupang.com" class="cta-btn" target="_blank">🛒 버튼 예시 (클릭해보세요)</a>
+    <a href="https://www.coupang.com" class="cta-btn" target="_blank">🛒 버튼 예시 (클릭)</a>
   </div>
-
-  <h2>시작하기</h2>
-  <p>이제 이 내용을 지우고 자유롭게 작성해보세요!</p>
 </div>`;
     }
 
@@ -358,7 +374,6 @@
       const code = editor.getValue();
       const t = THEMES[state.t];
 
-      // 미리보기용 CSS (다크모드여도 body 배경은 흰색 유지!)
       const css = `
         <style>
           body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; line-height: 1.8; color: #333; margin: 0; padding: 30px; background: #fff !important; }
@@ -366,9 +381,11 @@
           h2 { color: ${t.h2}; border-bottom: 2px solid ${t.h2}; padding-bottom: 10px; margin-top: 40px; font-size: 1.5rem; }
           h3 { color: ${t.h3}; border-left: 5px solid ${t.h3}; padding-left: 10px; margin-top: 30px; font-size: 1.2rem; }
           a { color: ${t.h2}; text-decoration: none; font-weight: bold; }
+          
+          /* 메타박스 스타일 (프리뷰용) */
+          .meta-desc-box { background: ${t.m}; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 5px solid ${t.h2}; font-size: 0.95rem; color: #555; }
           .meta-box { background: ${t.m}; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #ddd; }
-          .meta-desc-title { font-size: 0.8rem; font-weight: bold; color: #666; margin-bottom: 5px; }
-          .meta-desc-text { margin: 0; font-size: 0.95rem; color: #444; }
+          
           table { width: 100%; border-collapse: collapse; margin: 20px 0; }
           th { background: ${t.h2}; color: white; padding: 10px; }
           td { border: 1px solid #ddd; padding: 10px; }
@@ -381,7 +398,6 @@
       doc.write(css + '<body><div id="content">' + code + '</div></body>');
       doc.close();
 
-      // 클릭 시 에디터 위치 이동
       doc.body.onclick = function(e) {
         if(e.target.innerText) {
           const txt = e.target.innerText.substring(0, 10);
@@ -397,16 +413,12 @@
     function toggleDarkMode() {
       state.dark = !state.dark;
       document.body.classList.toggle('dark-mode', state.dark);
-      // 프리뷰는 다시 렌더링해도 흰색 유지됨 (render 함수 내 고정)
     }
 
-    function setVWidth(w) {
-      document.getElementById('viewport').style.width = w;
-    }
+    function setVWidth(w) { document.getElementById('viewport').style.width = w; }
 
     /* ================= 기능 로직 ================= */
     
-    // 테마 목록 생성
     function renderThemes() {
       const grid = document.getElementById('theme-grid');
       grid.innerHTML = '';
@@ -414,23 +426,18 @@
         const el = document.createElement('div');
         el.className = 'theme-card' + (idx === state.t ? ' active' : '');
         el.innerHTML = `<div class="color-dot" style="background:${th.h2}"></div><small>${th.n}</small>`;
-        el.onclick = () => {
-          state.t = idx;
-          renderThemes();
-          render();
-        };
+        el.onclick = () => { state.t = idx; renderThemes(); render(); };
         grid.appendChild(el);
       });
     }
 
-    // 🎨 테마를 인라인 스타일로 적용 (워드프레스용 핵심 기능)
+    // ✅ 테마 적용 (메타박스 스타일 적용 수정됨)
     function applyThemeInline() {
       const t = THEMES[state.t];
       const code = editor.getValue();
       const parser = new DOMParser();
       const doc = parser.parseFromString(code, 'text/html');
 
-      // 스타일 주입 헬퍼
       const addStyle = (sel, style) => {
         doc.querySelectorAll(sel).forEach(el => {
           const old = el.getAttribute('style') || '';
@@ -444,19 +451,19 @@
       addStyle('th', `background:${t.h2}; color:white; padding:10px; border:1px solid #ddd;`);
       addStyle('td', 'border:1px solid #ddd; padding:10px;');
       
-      // 메타 박스 스타일
+      // 메타 설명 박스 스타일 적용
+      addStyle('.meta-desc-box', `background:${t.m}; padding:20px; border-radius:10px; margin:20px 0; border-left: 5px solid ${t.h2}; font-size: 0.95rem; color: #555;`);
       addStyle('.meta-box', `background:${t.m}; padding:20px; border-radius:10px; margin:20px 0; border:1px solid #ddd;`);
 
-      // CTA 버튼 스타일 강화
       doc.querySelectorAll('.cta-btn').forEach(btn => {
+        // 기존 스타일 유지를 위해 덮어쓰지 않고 추가 체크가 필요할 수 있으나, 일관성을 위해 덮어씌움
         btn.setAttribute('style', `display:block; width:100%; max-width:400px; margin:20px auto; padding:15px; background:${t.c}; color:white !important; text-align:center; border-radius:50px; text-decoration:none; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2);`);
       });
 
       editor.setValue(doc.body.innerHTML);
-      alert('테마가 코드에 적용되었습니다! 이제 복사해서 사용하세요.');
+      alert('테마가 코드에 적용되었습니다! (메타박스 색상 포함)');
     }
 
-    // SEO 업데이트
     function updateSEO() {
       const code = editor.getValue();
       const txtLen = code.replace(/<[^>]*>/g, '').length;
@@ -464,25 +471,15 @@
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(code, 'text/html');
-      
       const h2Count = doc.querySelectorAll('h2').length;
-      const h2El = document.getElementById('stat-h2');
-      h2El.innerText = `H2: ${h2Count}개`;
-      h2El.className = h2Count > 0 ? 'seo-stat seo-good' : 'seo-stat seo-bad';
-
+      document.getElementById('stat-h2').innerText = `H2: ${h2Count}개`;
       const imgs = doc.querySelectorAll('img');
       const missingAlt = Array.from(imgs).filter(img => !img.alt).length;
       const altEl = document.getElementById('stat-alt');
-      if(imgs.length === 0) {
-        altEl.innerText = '이미지 없음'; altEl.className = 'seo-stat';
-      } else if(missingAlt > 0) {
-        altEl.innerText = `Alt 누락 ${missingAlt}개`; altEl.className = 'seo-stat seo-bad';
-      } else {
-        altEl.innerText = 'Alt 완벽함'; altEl.className = 'seo-stat seo-good';
-      }
+      altEl.innerText = missingAlt > 0 ? `Alt 누락 ${missingAlt}개` : 'Alt 완벽함';
+      altEl.className = missingAlt > 0 ? 'seo-stat seo-bad' : 'seo-stat seo-good';
     }
 
-    // ✅ JSON-LD 삽입 함수 (날짜 제거됨)
     function insJSONLD() {
       const headline = document.getElementById('seo-headline').value || '제목';
       const desc = document.getElementById('seo-desc').value || '설명';
@@ -493,10 +490,7 @@
         "@type": type,
         "headline": headline,
         "description": desc,
-        "author": {
-          "@type": "Person",
-          "name": "Blogger"
-        }
+        "author": { "@type": "Person", "name": "Blogger" }
       };
 
       const script = `<script type="application/ld+json">${JSON.stringify(schema, null, 2)}<\/script>`;
@@ -505,19 +499,16 @@
       alert('SEO 구조화 데이터가 삽입되었습니다.');
     }
 
-    // 삽입 헬퍼
     function insertAtCursor(text) {
       editor.replaceSelection(text);
       editor.focus();
     }
 
-    // 공정위 문구
     function insertFairTrade() {
       const html = `<p style="color:#888; font-size:12px; text-align:center; margin-top:50px;">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>`;
       insertAtCursor(html);
     }
 
-    // 코드 청소
     function cleanHTML() {
       if(!confirm('외부 스타일(class, style)을 모두 삭제하시겠습니까?')) return;
       let code = editor.getValue();
@@ -526,45 +517,85 @@
       alert('코드가 정리되었습니다.');
     }
 
-    // 모달 제어
     function openModal(id) { document.getElementById('modal-'+id).classList.add('active'); }
     function closeModal(id) { document.getElementById('modal-'+id).classList.remove('active'); }
     
-    // 리셋
     function resetEditor() {
       if(confirm('정말 초기화 하시겠습니까?')) {
         editor.setValue(getDefaultContent());
       }
     }
 
-    // 복사
     function copyHTML() {
       navigator.clipboard.writeText(editor.getValue())
         .then(() => alert('클립보드에 복사되었습니다. 블로그에 붙여넣으세요!'));
     }
 
     /* ================= 요소 삽입 함수들 ================= */
-    
     function insImg() {
       const url = document.getElementById('img-url').value;
       const alt = document.getElementById('img-alt').value;
       const width = document.getElementById('img-width').value;
       const link = document.getElementById('img-link').value;
       const isWP = document.getElementById('wp-img-mode').checked;
-
       let html = `<img src="${url}" alt="${alt}" style="width:${width}%;">`;
-      
       if(link) html = `<a href="${link}" target="_blank">${html}</a>`;
       if(isWP) html = `<figure class="wp-block-image">${html}</figure>`;
-      
       insertAtCursor(html);
       closeModal('img');
+    }
+
+    // ✅ 복구된 버튼 생성기 로직
+    function setCTAColor(type, color) {
+      if(type === 'bg') document.getElementById('cta-bg-color').value = color;
+      else document.getElementById('cta-text-color').value = color;
+      updateCTAPreview();
+    }
+
+    function updateCTAPreview() {
+      const txt = document.getElementById('cta-txt').value;
+      const bg = document.getElementById('cta-bg-color').value;
+      const color = document.getElementById('cta-text-color').value;
+      const size = document.getElementById('cta-font-size').value;
+      const shiny = document.getElementById('cta-shiny').checked;
+      const shadow = document.getElementById('cta-shadow').checked;
+
+      const preview = document.getElementById('cta-preview');
+      let style = `display:inline-block; padding:15px 30px; background:${bg}; color:${color}; border-radius:50px; text-decoration:none; font-weight:bold; font-size:${size}px; border:none; cursor:pointer;`;
+      
+      if(shadow) style += ' box-shadow: 0 4px 15px rgba(0,0,0,0.3);';
+      if(shiny) style += ' background-image: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); background-size: 200% 100%; animation: shine 3s infinite;';
+
+      preview.innerHTML = `<button style="${style}" onclick="return false;">${txt}</button>
+      <style>@keyframes shine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }</style>`;
     }
 
     function insCTA() {
       const txt = document.getElementById('cta-txt').value;
       const url = document.getElementById('cta-url').value;
-      const html = `<br><a href="${url}" class="cta-btn" target="_blank">${txt}</a><br>`;
+      const bg = document.getElementById('cta-bg-color').value;
+      const color = document.getElementById('cta-text-color').value;
+      const size = document.getElementById('cta-font-size').value;
+      const shiny = document.getElementById('cta-shiny').checked;
+      const shadow = document.getElementById('cta-shadow').checked;
+      const float = document.getElementById('cta-float').checked;
+      
+      const uniqueClass = 'cta-' + Math.random().toString(36).substr(2, 6);
+      
+      let css = `.${uniqueClass} { display:block; width:100%; max-width:400px; margin:20px auto; padding:18px; background:${bg}; color:${color} !important; text-align:center; border-radius:50px; text-decoration:none; font-weight:bold; font-size:${size}px; transition:0.3s; border:none; }`;
+      css += `.${uniqueClass}:hover { transform: translateY(-3px); filter: brightness(1.1); }`;
+      
+      if(shadow) css += `.${uniqueClass} { box-shadow: 0 5px 15px rgba(0,0,0,0.2); }`;
+      if(shiny) {
+        css += `.${uniqueClass} { background-image: linear-gradient(135deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); background-size: 200% 100%; animation: shine 3s infinite; }`;
+        css += `@keyframes shine { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }`;
+      }
+      if(float) {
+         css += `@keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-5px); } 100% { transform: translateY(0px); } }`;
+         css += `.${uniqueClass} { animation: float 3s ease-in-out infinite${shiny ? ', shine 3s infinite' : ''}; }`;
+      }
+
+      const html = `<style>${css}</style><br><a href="${url}" class="${uniqueClass}" target="_blank">${txt}</a><br>`;
       insertAtCursor(html);
       closeModal('cta');
     }
@@ -574,17 +605,10 @@
       const icon = document.getElementById('app-icon').value;
       const gp = document.getElementById('app-google').value;
       const ap = document.getElementById('app-apple').value;
-      
       let btns = '';
       if(gp) btns += `<a href="${gp}" style="display:inline-block; padding:10px 20px; background:#eee; border-radius:5px; margin:5px; text-decoration:none; color:#333;">Google Play</a>`;
       if(ap) btns += `<a href="${ap}" style="display:inline-block; padding:10px 20px; background:#eee; border-radius:5px; margin:5px; text-decoration:none; color:#333;">App Store</a>`;
-
-      const html = `
-<div style="border:1px solid #ddd; padding:20px; border-radius:15px; text-align:center; max-width:400px; margin:30px auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
-  <img src="${icon}" style="width:80px; height:80px; border-radius:18px; margin-bottom:15px;">
-  <h3 style="margin:0 0 15px 0;">${name}</h3>
-  <div>${btns}</div>
-</div>`;
+      const html = `<div style="border:1px solid #ddd; padding:20px; border-radius:15px; text-align:center; max-width:400px; margin:30px auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);"><img src="${icon}" style="width:80px; height:80px; border-radius:18px; margin-bottom:15px;"><h3 style="margin:0 0 15px 0;">${name}</h3><div>${btns}</div></div>`;
       insertAtCursor(html);
       closeModal('app');
     }
@@ -593,86 +617,39 @@
       const doc = new DOMParser().parseFromString(editor.getValue(), 'text/html');
       const headers = doc.querySelectorAll('h2, h3');
       if(headers.length === 0) { alert('H2 또는 H3 태그가 없습니다.'); return; }
-
       let toc = `<div class="meta-box"><strong>📑 목차</strong><ul style="list-style:none; padding-left:10px;">`;
       let i = 1;
       let newContent = editor.getValue();
-
       headers.forEach(h => {
         const txt = h.innerText;
         const id = 'toc-' + i;
         const indent = h.tagName === 'H3' ? '20px' : '0px';
         toc += `<li style="margin-bottom:8px; padding-left:${indent}"><a href="#${id}" style="text-decoration:none; color:#555;">${txt}</a></li>`;
-        
-        // 본문에 ID 삽입 (단순 치환 방식)
         const tag = h.tagName.toLowerCase();
         newContent = newContent.replace(`<${tag}>${txt}</${tag}>`, `<${tag} id="${id}">${txt}</${tag}>`);
         i++;
       });
       toc += '</ul></div>';
-      
       editor.setValue(toc + newContent);
       closeModal('toc');
     }
 
-    // ✅ 업그레이드된 마크다운 변환기 (HTML → MD)
     function toMD() {
       let html = document.getElementById('conv-input').value;
-      
-      let md = html
-        // 1. 줄바꿈 및 공백 정리
-        .replace(/<br\s*\/?>/gmi, '\n')
-        .replace(/<\/div>/gmi, '\n')
-        .replace(/<\/p>/gmi, '\n\n')
-        
-        // 2. 제목 (H1 ~ H3)
-        .replace(/<h1[^>]*>(.*?)<\/h1>/gmi, '# $1\n')
-        .replace(/<h2[^>]*>(.*?)<\/h2>/gmi, '## $1\n')
-        .replace(/<h3[^>]*>(.*?)<\/h3>/gmi, '### $1\n')
-        
-        // 3. 굵게, 기울임
-        .replace(/<strong[^>]*>(.*?)<\/strong>/gmi, '**$1**')
-        .replace(/<b[^>]*>(.*?)<\/b>/gmi, '**$1**')
-        .replace(/<em[^>]*>(.*?)<\/em>/gmi, '*$1*')
-        
-        // 4. 링크 및 이미지
-        .replace(/<a[^>]*href="(.*?)"[^>]*>(.*?)<\/a>/gmi, '[$2]($1)')
-        .replace(/<img[^>]*src="(.*?)"[^>]*alt="(.*?)"[^>]*>/gmi, '![$2]($1)')
-        
-        // 5. 리스트
-        .replace(/<li[^>]*>(.*?)<\/li>/gmi, '- $1\n')
-        .replace(/<ul[^>]*>/gmi, '')
-        .replace(/<\/ul>/gmi, '')
-        
-        .trim();
-
+      let md = html.replace(/<br\s*\/?>/gmi, '\n').replace(/<\/div>/gmi, '\n').replace(/<\/p>/gmi, '\n\n')
+        .replace(/<h1[^>]*>(.*?)<\/h1>/gmi, '# $1\n').replace(/<h2[^>]*>(.*?)<\/h2>/gmi, '## $1\n').replace(/<h3[^>]*>(.*?)<\/h3>/gmi, '### $1\n')
+        .replace(/<strong[^>]*>(.*?)<\/strong>/gmi, '**$1**').replace(/<b[^>]*>(.*?)<\/b>/gmi, '**$1**').replace(/<em[^>]*>(.*?)<\/em>/gmi, '*$1*')
+        .replace(/<a[^>]*href="(.*?)"[^>]*>(.*?)<\/a>/gmi, '[$2]($1)').replace(/<img[^>]*src="(.*?)"[^>]*alt="(.*?)"[^>]*>/gmi, '![$2]($1)')
+        .replace(/<li[^>]*>(.*?)<\/li>/gmi, '- $1\n').replace(/<ul[^>]*>/gmi, '').replace(/<\/ul>/gmi, '').trim();
       document.getElementById('conv-output').value = md;
     }
 
-    // ✅ 업그레이드된 마크다운 변환기 (MD → HTML)
     function toHTML() {
       let md = document.getElementById('conv-input').value;
-      
-      let html = md
-        // 1. 제목
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^# (.*$)/gim, '<h1>$1</h1>')
-        
-        // 2. 굵게, 기울임
-        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/gim, '<em>$1</em>')
-        
-        // 3. 이미지 및 링크
-        .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1">')
-        .replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
-        
-        // 4. 리스트 (간단 변환)
-        .replace(/^- (.*$)/gim, '<li>$1</li>')
-        
-        // 5. 줄바꿈
-        .replace(/\n/gim, '<br>');
-
+      let html = md.replace(/^### (.*$)/gim, '<h3>$1</h3>').replace(/^## (.*$)/gim, '<h2>$1</h2>').replace(/^# (.*$)/gim, '<h1>$1</h1>')
+        .replace(/\*\*(.*?)\*\*/gim, '<strong>$1</strong>').replace(/\*(.*?)\*/gim, '<em>$1</em>')
+        .replace(/!\[(.*?)\]\((.*?)\)/gim, '<img src="$2" alt="$1">').replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2" target="_blank">$1</a>')
+        .replace(/^- (.*$)/gim, '<li>$1</li>').replace(/\n/gim, '<br>');
       document.getElementById('conv-output').value = html;
     }
   </script>
