@@ -245,15 +245,25 @@
   </div>
 
   <div class="modal" id="modal-converter">
-    <div class="modal-card">
-      <h2>🔄 HTML ↔ Markdown</h2>
-      <textarea id="conv-input" style="height:150px;" placeholder="여기에 내용을 입력하세요"></textarea>
-      <div style="display:flex; gap:10px; margin-top:10px;">
-        <button class="btn btn-primary" style="flex:1" onclick="toMD()">HTML → MD</button>
-        <button class="btn btn-primary" style="flex:1" onclick="toHTML()">MD → HTML</button>
+    <div class="modal-card" style="max-width: 700px;">
+      <h2>🔄 HTML ↔ Markdown 변환기</h2>
+      
+      <div class="field">
+        <label>📝 입력 (여기에 붙여넣으세요)</label>
+        <textarea id="conv-input" style="height:150px; font-family: monospace; font-size: 13px; line-height: 1.5;" placeholder="HTML 또는 마크다운 코드를 입력하세요..."></textarea>
       </div>
-      <textarea id="conv-output" style="height:150px; margin-top:10px; background:#222;" readonly></textarea>
-      <button class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="closeModal('converter')">닫기</button>
+
+      <div style="display:flex; gap:10px; margin-bottom: 15px;">
+        <button class="btn btn-primary" style="flex:1; padding:10px;" onclick="toMD()">⬇️ HTML을 마크다운으로</button>
+        <button class="btn btn-success" style="flex:1; padding:10px;" onclick="toHTML()">⬇️ 마크다운을 HTML로</button>
+      </div>
+
+      <div class="field">
+        <label>✨ 변환 결과</label>
+        <textarea id="conv-output" style="height:150px; font-family: monospace; font-size: 13px; line-height: 1.5; background: #000; color: #4ade80; border-color: #333;" readonly placeholder="변환된 결과가 여기에 나타납니다."></textarea>
+      </div>
+
+      <button class="btn btn-secondary" style="width:100%; padding:10px;" onclick="closeModal('converter')">닫기</button>
     </div>
   </div>
 
