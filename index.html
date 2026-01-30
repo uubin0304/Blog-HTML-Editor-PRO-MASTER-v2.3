@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>블로그 HTML 에디터 PRO MASTER v3.0 (Final)</title>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" />
+  <style>
+    :root {
+      --primary: #6366f1;
+      --bg-dark: #0f172a;
+      --bg-darker: #020617;
+      --bg-light: #1e293b;
+      --text-primary: #f1f5f9;
+      --border: #334155;
+    }
+    body.dark-mode { --bg-dark: #000; --bg-darker: #111; --bg-light: #222; --border: #444; }
+    body { font-family: 'Inter', system-ui, sans-serif; background: linear-gradient(135deg, var(--bg-dark), var(--bg-darker)); color: var(--text-primary); height: 100vh; margin: 0; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* 헤더 & 툴바 */
+    .header { background: rgba(15, 23, 42, 0.95); border-bottom: 2px solid var(--primary); padding: 0.6rem 1rem; z-index: 100; }
+    .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+    .header h1 { font-size: 1.1rem; margin: 0; background: linear-gradient(135deg, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    
+    .toolbar { display: flex; flex-wrap: wrap; gap: 5px; }
+    .separator { width: 1px; background: var(--border); margin: 0 5px; height: 24px; }
+    
+    .btn { padding: 6px 12px; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: 0.2s; }
+    .btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-secondary { background: var(--bg-light); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-success { background: #10b981; color: white; }
+    .btn-danger { background: #ef4444; color: white; }
+
+    /* 작업 공간 */
+    .workspace { flex: 1; display: flex; overflow: hidden; }
+    .pane { width: 50%; display: flex; flex-direction: column; border-right: 1px solid var(--border); }
+    .pane-header { background: var(--bg-darker); padding: 5px 10px; font-size: 0.7rem; font-weight: bold; color: #888; display: flex; justify-content: space-between; align-items: center; }
+    
+    /* 에디터 */
+    .CodeMirror { flex: 1; height: auto !important; font-size: 14px; font-family: 'Consolas', monospace; }
+    
+    /* 미리보기 (다크모드여도 항상 흰색 유지) */
+    #preview-pane { background: #e2e8f0 !important; }
+    .preview-content { flex: 1; overflow: auto; padding: 20px; display: flex; justify-content: center; }
+    .preview-viewport { 
+      background: white !important; 
+      width: 100%; max-width: 800px; min-height: 100%; 
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 8px; 
+      transition: width 0.3s;
+    }
+    iframe { width: 100%; height: 100%; border: none; display: block; }
+
+    /* SEO 상태바 */
+    .seo-bar { background: var(--bg-darker); padding: 8px 15px; font-size: 0.8rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .seo-stat { margin-right: 15px; font-weight: bold; }
+    .seo-good { color: #10b981; } .seo-bad { color: #ef4444; }
+
+    /* 모달 공통 */
+    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
+    .modal.active { display: flex; }
+    .modal-card { background: var(--bg-dark); border: 1px solid var(--border); padding: 25px; border-radius: 15px; width: 90%; max-width: 600px; max-height: 85vh; overflow-y: auto; color: var(--text-primary); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    .modal h2 { margin-top: 0; color: var(--primary); }
+    .field { margin-bottom: 15px; }
+    .field label { display: block; margin-bottom: 5px; font-size: 0.8rem; color: #999; }
+    .field input, .field select, .field textarea { width: 100%; padding: 8px; background: var(--bg-darker); border: 1px solid var(--border); color: white; border-radius: 6px; box-sizing: border-box; }
+    .theme-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+    .theme-card { background: var(--bg-darker); border: 1px solid var(--border); padding: 10px; border-radius: 8px; cursor: pointer; text-align: center; }
+    .theme-card:hover, .theme-card.active { border-color: var(--primary); background: var(--bg-light); }
+    .color-dot { width: 100%; height: 10px; border-radius: 5px; margin-bottom: 5px; }
+
+    .help-step { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; border-left: 4px solid var(--primary); }
+  </style>
+</head>
+<body class="light-mode">
+  <header class="header">
+    <div class="header-top">
+      <h1>🎨 BLOG EDITOR <span style="font-size:0.7em; opacity:0.7;">PRO MASTER v3.0</span></h1>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary" onclick="toggleDarkMode()">🌓 모드전환</button>
+        <button class="btn btn-secondary" style="background:#4f46e5; border:none; color:white;" onclick="openModal('help')">❓ 도움말</button>
+        <button class="btn btn-primary" onclick="copyHTML()">📋 전체복사</button>
+        <button class="btn btn-danger" onclick="resetEditor()">🔄 리셋</button>
+      </div>
+    </div>
+    <div class="toolbar">
+      <button class="btn btn-secondary" onclick="openModal('themes')">🌈 테마선택</button>
+      <button class="btn btn-success" onclick="applyThemeInline()">🎨 코드에 적용</button>
+      <div class="separator"></div>
+      <button class="btn btn-secondary" onclick="openModal('cta')">✨ 버튼</button>
+      <button class="btn btn-secondary" onclick="openModal('img')">🖼️ 이미지</button>
+      <button class="btn btn-secondary" onclick="openModal('toc')">📑 목차</button>
+      <button class="btn btn-secondary" onclick="openModal('seo')">🔍 SEO설정</button>
+      <button class="btn btn-secondary" onclick="openModal('app')">📱 앱블록</button>
+      <div class="separator"></div>
+      <button class="btn btn-secondary" onclick="cleanHTML()">🧹 코드청소</button>
+      <button class="btn btn-secondary" onclick="openModal('converter')">🔄 MD변환</button>
+      <button class="btn btn-secondary" onclick="insertFairTrade()">⚖️ 공정위</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <section class="pane">
+      <div class="pane-header">
+        <span>HTML Source</span>
+        <span style="font-size:0.7rem">Ctrl+Z: 실행취소</span>
+      </div>
+      <textarea id="cm-textarea"></textarea>
+    </section>
+
+    <section class="pane" id="preview-pane">
+      <div class="pane-header">
+        <span>Realtime Preview</span>
+        <div>
+          <button class="btn" style="padding:2px 6px; font-size:10px;" onclick="setVWidth('100%')">PC</button>
+          <button class="btn" style="padding:2px 6px; font-size:10px;" onclick="setVWidth('375px')">Mobile</button>
+        </div>
+      </div>
+      <div class="preview-content">
+        <div class="preview-viewport" id="viewport">
+          <iframe id="preview-frame"></iframe>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="seo-bar">
+    <div>
+      <span class="seo-stat" id="stat-len">글자수: 0자</span>
+      <span class="seo-stat" id="stat-h2">H2: 0개</span>
+      <span class="seo-stat" id="stat-alt">이미지 Alt: 확인중</span>
+    </div>
+    <div style="opacity:0.7; font-size:0.7rem;">Auto-saved</div>
+  </footer>
+
+  <div class="modal" id="modal-help">
+    <div class="modal-card">
+      <h2>🚀 3초 완성 가이드</h2>
+      <div class="help-step">
+        <strong>Step 1. 글쓰기</strong><br>
+        왼쪽 화면에 글을 쓰거나 붙여넣으세요. (H2 제목을 쓰면 목차가 자동 생성됩니다)
+      </div>
+      <div class="help-step">
+        <strong>Step 2. 꾸미기</strong><br>
+        [🌈 테마선택]에서 색상을 고르고, 반드시 <b>[🎨 코드에 적용]</b> 버튼을 누르세요.<br>
+        * 이 버튼을 눌러야 블로그에 붙여넣었을 때 디자인이 유지됩니다.
+      </div>
+      <div class="help-step">
+        <strong>Step 3. 복사 & 붙여넣기</strong><br>
+        [📋 전체복사] 후 블로그 글쓰기의 'HTML 모드'에 붙여넣으세요.
+      </div>
+      <hr style="border-color:var(--border); margin:15px 0;">
+      <p><strong>💡 팁:</strong> 외부에서 글을 긁어왔을 땐 [🧹 코드청소]를 누르면 깨끗해집니다.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="closeModal('help')">알겠습니다!</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-themes">
+    <div class="modal-card">
+      <h2>🌈 디자인 테마 선택</h2>
+      <div class="theme-grid" id="theme-grid"></div>
+      <button class="btn btn-secondary" style="width:100%; margin-top:15px;" onclick="closeModal('themes')">닫기</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-img">
+    <div class="modal-card">
+      <h2>🖼️ 이미지 삽입</h2>
+      <div class="field"><label>이미지 주소 (URL)</label><input type="text" id="img-url" placeholder="https://..."></div>
+      <div class="field"><label>설명 (Alt 태그 - SEO필수)</label><input type="text" id="img-alt"></div>
+      <div class="field"><label>링크 (클릭시 이동)</label><input type="text" id="img-link"></div>
+      <div class="field"><label>너비 (%)</label><input type="range" id="img-width" min="20" max="100" value="100" oninput="document.getElementById('img-w-val').innerText=this.value+'%'"> <span id="img-w-val">100%</span></div>
+      <div style="display:flex; gap:10px;">
+        <input type="checkbox" id="wp-img-mode"> <label for="wp-img-mode">워드프레스 호환 모드</label>
+      </div>
+      <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="insImg()">삽입하기</button>
+      <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('img')">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-cta">
+    <div class="modal-card">
+      <h2>✨ 클릭 유도 버튼</h2>
+      <div class="field"><label>버튼 문구</label><input type="text" id="cta-txt" value="자세히 보기 👉"></div>
+      <div class="field"><label>이동할 주소</label><input type="text" id="cta-url" placeholder="https://..."></div>
+      <div class="field"><label>배경 색상</label><input type="color" id="cta-bg" value="#6366f1" style="height:40px;"></div>
+      <button class="btn btn-primary" style="width:100%; margin-top:10px;" onclick="insCTA()">버튼 만들기</button>
+      <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('cta')">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-app">
+    <div class="modal-card">
+      <h2>📱 앱 다운로드 박스</h2>
+      <div class="field"><label>앱 이름</label><input type="text" id="app-name"></div>
+      <div class="field"><label>아이콘 URL</label><input type="text" id="app-icon"></div>
+      <div class="field"><label>Google Play 링크</label><input type="text" id="app-google"></div>
+      <div class="field"><label>App Store 링크</label><input type="text" id="app-apple"></div>
+      <button class="btn btn-primary" style="width:100%" onclick="insApp()">삽입</button>
+      <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('app')">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-toc">
+    <div class="modal-card">
+      <h2>📑 자동 목차 생성</h2>
+      <p>본문의 H2, H3 태그를 찾아 목차를 만듭니다.</p>
+      <button class="btn btn-primary" style="width:100%" onclick="makeTOC()">목차 삽입</button>
+      <button class="btn btn-secondary" style="width:100%; margin-top:5px;" onclick="closeModal('toc')">취소</button>
+    </div>
+  </div>
+
+  <div class="modal" id="modal-converter">
+    <div class="modal-card">
+      <h2>🔄 HTML ↔ Markdown</h2>
+      <textarea id="conv-input" style="height:150px;" placeholder="여기에 내용을 입력하세요"></textarea>
+      <div style="display:flex; gap:10px; margin-top:10px;">
+        <button class="btn btn-primary" style="flex:1" onclick="toMD()">HTML → MD</button>
+        <button class="btn btn-primary" style="flex:1" onclick="toHTML()">MD → HTML</button>
+      </div>
+      <textarea id="conv-output" style="height:150px; margin-top:10px; background:#222;" readonly></textarea>
+      <button class="btn btn-secondary" style="width:100%; margin-top:10px;" onclick="closeModal('converter')">닫기</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/htmlmixed/htmlmixed.min.js"></script>
+
+  <script>
+    /* ================= 시스템 변수 ================= */
+    let editor;
+    let state = { t: 0, dark: false };
+    
+    // 테마 데이터 (20종 중 핵심 10종)
+    const THEMES = [
+      { n: '에메랄드', h2: '#2ecc71', h3: '#27ae60', m: '#E8F5E9', c: '#2ecc71' },
+      { n: '오션블루', h2: '#3498db', h3: '#2980b9', m: '#e3f2fd', c: '#3498db' },
+      { n: '로즈핑크', h2: '#e91e63', h3: '#c2185b', m: '#fce4ec', c: '#e91e63' },
+      { n: '바이올렛', h2: '#9b59b6', h3: '#8e44ad', m: '#f3e5f5', c: '#9b59b6' },
+      { n: '오렌지', h2: '#ff9800', h3: '#f57c00', m: '#fff3e0', c: '#ff9800' },
+      { n: '차콜그레이', h2: '#455a64', h3: '#37474f', m: '#eceff1', c: '#455a64' },
+      { n: '민트', h2: '#00b894', h3: '#00cec9', m: '#e0f2f1', c: '#00b894' },
+      { n: '네이비', h2: '#2c3e50', h3: '#34495e', m: '#ebf5fb', c: '#2c3e50' },
+      { n: '레드와인', h2: '#c0392b', h3: '#a93226', m: '#f9ebea', c: '#c0392b' },
+      { n: '골드', h2: '#f1c40f', h3: '#f39c12', m: '#fef9e7', c: '#f1c40f' }
+    ];
+
+    /* ================= 초기화 ================= */
+    window.onload = function() {
+      editor = CodeMirror.fromTextArea(document.getElementById('cm-textarea'), {
+        mode: 'htmlmixed', theme: 'monokai', lineNumbers: true, lineWrapping: true
+      });
+
+      // 자동 저장 불러오기
+      const saved = localStorage.getItem('blog_editor_content');
+      if(saved) editor.setValue(saved);
+      else editor.setValue(getDefaultContent());
+
+      editor.on('change', () => {
+        render();
+        updateSEO();
+        localStorage.setItem('blog_editor_content', editor.getValue());
+      });
+
+      renderThemes();
+      render();
+      updateSEO();
+    };
+
+    function getDefaultContent() {
+      return `<h2>블로그 제목을 입력하세요</h2>
+<p>여기에 본문을 작성하세요. 왼쪽 에디터에서 글을 쓰면 오른쪽에 바로 보입니다.</p>
+
+<h3>소제목 예시</h3>
+<p>이미지나 버튼을 추가하려면 상단 메뉴를 클릭하세요.</p>`;
+    }
+
+    /* ================= 렌더링 & 미리보기 ================= */
+    function render() {
+      const frame = document.getElementById('preview-frame');
+      const doc = frame.contentDocument;
+      const code = editor.getValue();
+      const t = THEMES[state.t];
+
+      // 미리보기용 CSS (다크모드여도 body 배경은 흰색 유지!)
+      const css = `
+        <style>
+          body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; line-height: 1.8; color: #333; margin: 0; padding: 30px; background: #fff !important; }
+          img { max-width: 100%; height: auto; border-radius: 8px; }
+          h2 { color: ${t.h2}; border-bottom: 2px solid ${t.h2}; padding-bottom: 10px; margin-top: 40px; font-size: 1.5rem; }
+          h3 { color: ${t.h3}; border-left: 5px solid ${t.h3}; padding-left: 10px; margin-top: 30px; font-size: 1.2rem; }
+          a { color: ${t.h2}; text-decoration: none; font-weight: bold; }
+          .meta-box { background: ${t.m}; padding: 20px; border-radius: 10px; margin: 20px 0; border: 1px solid #ddd; }
+          table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+          th { background: ${t.h2}; color: white; padding: 10px; }
+          td { border: 1px solid #ddd; padding: 10px; }
+          .cta-btn { display: block; width: 100%; max-width: 400px; margin: 20px auto; padding: 15px; background: ${t.c}; color: white !important; text-align: center; border-radius: 50px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: 0.3s; }
+          .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
+        </style>
+      `;
+
+      doc.open();
+      doc.write(css + '<body><div id="content">' + code + '</div></body>');
+      doc.close();
+
+      // 클릭 시 에디터 위치 이동
+      doc.body.onclick = function(e) {
+        if(e.target.innerText) {
+          const txt = e.target.innerText.substring(0, 10);
+          const cursor = editor.getSearchCursor(txt);
+          if(cursor.findNext()) {
+            editor.setSelection(cursor.from(), cursor.to());
+            editor.focus();
+          }
+        }
+      }
+    }
+
+    function toggleDarkMode() {
+      state.dark = !state.dark;
+      document.body.classList.toggle('dark-mode', state.dark);
+      // 프리뷰는 다시 렌더링해도 흰색 유지됨 (render 함수 내 고정)
+    }
+
+    function setVWidth(w) {
+      document.getElementById('viewport').style.width = w;
+    }
+
+    /* ================= 기능 로직 ================= */
+    
+    // 테마 목록 생성
+    function renderThemes() {
+      const grid = document.getElementById('theme-grid');
+      grid.innerHTML = '';
+      THEMES.forEach((th, idx) => {
+        const el = document.createElement('div');
+        el.className = 'theme-card' + (idx === state.t ? ' active' : '');
+        el.innerHTML = `<div class="color-dot" style="background:${th.h2}"></div><small>${th.n}</small>`;
+        el.onclick = () => {
+          state.t = idx;
+          renderThemes();
+          render();
+        };
+        grid.appendChild(el);
+      });
+    }
+
+    // 🎨 테마를 인라인 스타일로 적용 (워드프레스용 핵심 기능)
+    function applyThemeInline() {
+      const t = THEMES[state.t];
+      const code = editor.getValue();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(code, 'text/html');
+
+      // 스타일 주입 헬퍼
+      const addStyle = (sel, style) => {
+        doc.querySelectorAll(sel).forEach(el => {
+          const old = el.getAttribute('style') || '';
+          el.setAttribute('style', old + ';' + style);
+        });
+      };
+
+      addStyle('h2', `color:${t.h2}; border-bottom:2px solid ${t.h2}; padding-bottom:10px; margin-top:40px;`);
+      addStyle('h3', `color:${t.h3}; border-left:5px solid ${t.h3}; padding-left:10px; margin-top:30px;`);
+      addStyle('table', 'width:100%; border-collapse:collapse; margin:20px 0;');
+      addStyle('th', `background:${t.h2}; color:white; padding:10px; border:1px solid #ddd;`);
+      addStyle('td', 'border:1px solid #ddd; padding:10px;');
+      
+      // CTA 버튼 스타일 강화
+      doc.querySelectorAll('.cta-btn').forEach(btn => {
+        btn.setAttribute('style', `display:block; width:100%; max-width:400px; margin:20px auto; padding:15px; background:${t.c}; color:white !important; text-align:center; border-radius:50px; text-decoration:none; font-weight:bold; box-shadow:0 4px 15px rgba(0,0,0,0.2);`);
+      });
+
+      editor.setValue(doc.body.innerHTML);
+      alert('테마가 코드에 적용되었습니다! 이제 복사해서 사용하세요.');
+    }
+
+    // SEO 업데이트
+    function updateSEO() {
+      const code = editor.getValue();
+      const txtLen = code.replace(/<[^>]*>/g, '').length;
+      document.getElementById('stat-len').innerText = `글자수: ${txtLen}자`;
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(code, 'text/html');
+      
+      const h2Count = doc.querySelectorAll('h2').length;
+      const h2El = document.getElementById('stat-h2');
+      h2El.innerText = `H2: ${h2Count}개`;
+      h2El.className = h2Count > 0 ? 'seo-stat seo-good' : 'seo-stat seo-bad';
+
+      const imgs = doc.querySelectorAll('img');
+      const missingAlt = Array.from(imgs).filter(img => !img.alt).length;
+      const altEl = document.getElementById('stat-alt');
+      if(imgs.length === 0) {
+        altEl.innerText = '이미지 없음'; altEl.className = 'seo-stat';
+      } else if(missingAlt > 0) {
+        altEl.innerText = `Alt 누락 ${missingAlt}개`; altEl.className = 'seo-stat seo-bad';
+      } else {
+        altEl.innerText = 'Alt 완벽함'; altEl.className = 'seo-stat seo-good';
+      }
+    }
+
+    // 삽입 헬퍼
+    function insertAtCursor(text) {
+      editor.replaceSelection(text);
+      editor.focus();
+    }
+
+    // 공정위 문구
+    function insertFairTrade() {
+      const html = `<p style="color:#888; font-size:12px; text-align:center; margin-top:50px;">이 포스팅은 쿠팡 파트너스 활동의 일환으로, 이에 따른 일정액의 수수료를 제공받습니다.</p>`;
+      insertAtCursor(html);
+    }
+
+    // 코드 청소
+    function cleanHTML() {
+      if(!confirm('외부 스타일(class, style)을 모두 삭제하시겠습니까?')) return;
+      let code = editor.getValue();
+      code = code.replace(/ style="[^"]*"/g, "").replace(/ class="[^"]*"/g, "");
+      editor.setValue(code);
+      alert('코드가 정리되었습니다.');
+    }
+
+    // 모달 제어
+    function openModal(id) { document.getElementById('modal-'+id).classList.add('active'); }
+    function closeModal(id) { document.getElementById('modal-'+id).classList.remove('active'); }
+    
+    // 리셋
+    function resetEditor() {
+      if(confirm('정말 초기화 하시겠습니까?')) {
+        editor.setValue(getDefaultContent());
+      }
+    }
+
+    // 복사
+    function copyHTML() {
+      navigator.clipboard.writeText(editor.getValue())
+        .then(() => alert('클립보드에 복사되었습니다. 블로그에 붙여넣으세요!'));
+    }
+
+    /* ================= 요소 삽입 함수들 ================= */
+    
+    function insImg() {
+      const url = document.getElementById('img-url').value;
+      const alt = document.getElementById('img-alt').value;
+      const width = document.getElementById('img-width').value;
+      const link = document.getElementById('img-link').value;
+      const isWP = document.getElementById('wp-img-mode').checked;
+
+      let html = `<img src="${url}" alt="${alt}" style="width:${width}%;">`;
+      
+      if(link) html = `<a href="${link}" target="_blank">${html}</a>`;
+      if(isWP) html = `<figure class="wp-block-image">${html}</figure>`;
+      
+      insertAtCursor(html);
+      closeModal('img');
+    }
+
+    function insCTA() {
+      const txt = document.getElementById('cta-txt').value;
+      const url = document.getElementById('cta-url').value;
+      const html = `<br><a href="${url}" class="cta-btn" target="_blank">${txt}</a><br>`;
+      insertAtCursor(html);
+      closeModal('cta');
+    }
+
+    function insApp() {
+      const name = document.getElementById('app-name').value;
+      const icon = document.getElementById('app-icon').value;
+      const gp = document.getElementById('app-google').value;
+      const ap = document.getElementById('app-apple').value;
+      
+      let btns = '';
+      if(gp) btns += `<a href="${gp}" style="display:inline-block; padding:10px 20px; background:#eee; border-radius:5px; margin:5px; text-decoration:none; color:#333;">Google Play</a>`;
+      if(ap) btns += `<a href="${ap}" style="display:inline-block; padding:10px 20px; background:#eee; border-radius:5px; margin:5px; text-decoration:none; color:#333;">App Store</a>`;
+
+      const html = `
+<div style="border:1px solid #ddd; padding:20px; border-radius:15px; text-align:center; max-width:400px; margin:30px auto; box-shadow:0 4px 10px rgba(0,0,0,0.05);">
+  <img src="${icon}" style="width:80px; height:80px; border-radius:18px; margin-bottom:15px;">
+  <h3 style="margin:0 0 15px 0;">${name}</h3>
+  <div>${btns}</div>
+</div>`;
+      insertAtCursor(html);
+      closeModal('app');
+    }
+
+    function makeTOC() {
+      const doc = new DOMParser().parseFromString(editor.getValue(), 'text/html');
+      const headers = doc.querySelectorAll('h2, h3');
+      if(headers.length === 0) { alert('H2 또는 H3 태그가 없습니다.'); return; }
+
+      let toc = `<div class="meta-box"><strong>📑 목차</strong><ul style="list-style:none; padding-left:10px;">`;
+      let i = 1;
+      let newContent = editor.getValue();
+
+      headers.forEach(h => {
+        const txt = h.innerText;
+        const id = 'toc-' + i;
+        const indent = h.tagName === 'H3' ? '20px' : '0px';
+        toc += `<li style="margin-bottom:8px; padding-left:${indent}"><a href="#${id}" style="text-decoration:none; color:#555;">${txt}</a></li>`;
+        
+        // 본문에 ID 삽입 (단순 치환 방식)
+        const tag = h.tagName.toLowerCase();
+        newContent = newContent.replace(`<${tag}>${txt}</${tag}>`, `<${tag} id="${id}">${txt}</${tag}>`);
+        i++;
+      });
+      toc += '</ul></div>';
+      
+      editor.setValue(toc + newContent);
+      closeModal('toc');
+    }
+
+    // MD 변환 (간이 로직)
+    function toMD() {
+      const html = document.getElementById('conv-input').value;
+      // 매우 간단한 변환 예시
+      let md = html.replace(/<h1>(.*?)<\/h1>/g, '# $1\n')
+                   .replace(/<h2>(.*?)<\/h2>/g, '## $1\n')
+                   .replace(/<br>/g, '\n');
+      document.getElementById('conv-output').value = md;
+    }
+    function toHTML() {
+      const md = document.getElementById('conv-input').value;
+      let html = md.replace(/^# (.*$)/gim, '<h1>$1</h1>')
+                   .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+                   .replace(/\n/g, '<br>');
+      document.getElementById('conv-output').value = html;
+    }
+  </script>
+</body>
+</html>
